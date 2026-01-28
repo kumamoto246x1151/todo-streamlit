@@ -18,38 +18,38 @@ supabase = init_supabase()
 # ===============================
 # タイトル
 # ===============================
-st.title("Health Log")
-st.caption("Daily sleep, exercise and condition tracking")
+st.title("健康管理アプリ")
+st.caption("睡眠・運動・体調をシンプルに記録・可視化")
 
 st.divider()
 
 # ===============================
 # 入力フォーム
 # ===============================
-st.subheader("New Record")
+st.subheader("新しい記録")
 
 with st.container():
     col1, col2 = st.columns(2)
 
     with col1:
-        log_date = st.date_input("Date", value=date.today())
+        log_date = st.date_input("日付", value=date.today())
         sleep_hours = st.number_input(
-            "Sleep (hours)", min_value=0.0, max_value=24.0, step=0.5
+            "睡眠時間（時間）", min_value=0.0, max_value=24.0, step=0.5
         )
         exercise_minutes = st.number_input(
-            "Exercise (minutes)", min_value=0, step=5
+            "運動時間（分）", min_value=0, step=5
         )
 
     with col2:
         condition = st.slider(
-            "Condition", 1, 5, 3
+            "体調", 1, 5, 3
         )
         meal_type = st.selectbox(
-            "Meal type",
+            "食事内容",
             ["自炊", "外食", "脂質多め", "野菜中心"]
         )
 
-    if st.button("Save"):
+    if st.button("保存"):
         supabase.table("health_logs").insert({
             "log_date": str(log_date),
             "sleep_hours": sleep_hours,
@@ -70,7 +70,7 @@ logs = (
 ).data
 
 if not logs:
-    st.info("No data yet.")
+    st.info("まだ記録がありません。")
     st.stop()
 
 df = pd.DataFrame(logs)
@@ -81,52 +81,52 @@ df = df.set_index("log_date")
 # サマリー
 # ===============================
 st.divider()
-st.subheader("Overview")
+st.subheader("サマリー")
 
 avg_sleep = df["sleep_hours"].mean()
 avg_exercise = df["exercise_minutes"].mean()
 avg_condition = df["condition"].mean()
 
 col1, col2, col3 = st.columns(3)
-col1.metric("Avg Sleep", f"{avg_sleep:.1f} h")
-col2.metric("Avg Exercise", f"{avg_exercise:.0f} min")
-col3.metric("Avg Condition", f"{avg_condition:.1f} / 5")
+col1.metric("平均睡眠時間", f"{avg_sleep:.1f} 時間")
+col2.metric("平均運動時間", f"{avg_exercise:.0f} 分")
+col3.metric("平均体調", f"{avg_condition:.1f} / 5")
 
 # ===============================
 # グラフ
 # ===============================
 st.divider()
-st.subheader("Trends")
+st.subheader("推移")
 
 RECOMMENDED_SLEEP = 7.0
-df["Recommended sleep"] = RECOMMENDED_SLEEP
+df["推奨睡眠時間"] = RECOMMENDED_SLEEP
 
-st.caption("Sleep duration")
-st.line_chart(df[["sleep_hours", "Recommended sleep"]])
+st.caption("睡眠時間")
+st.line_chart(df[["sleep_hours", "推奨睡眠時間"]])
 
-st.caption("Exercise time")
+st.caption("運動時間")
 st.bar_chart(df["exercise_minutes"].clip(lower=0))
 
-st.caption("Condition")
+st.caption("体調")
 st.line_chart(df["condition"].clip(lower=1))
 
 # ===============================
-# ログ一覧
+# 記録一覧
 # ===============================
 st.divider()
-st.subheader("Records")
+st.subheader("記録一覧")
 
 for log in reversed(logs):
     with st.container():
         cols = st.columns([2, 2, 2, 2, 2, 1])
 
         cols[0].write(log["log_date"])
-        cols[1].write(f"{log['sleep_hours']} h")
-        cols[2].write(f"{log['exercise_minutes']} min")
+        cols[1].write(f"{log['sleep_hours']} 時間")
+        cols[2].write(f"{log['exercise_minutes']} 分")
         cols[3].write(f"{log['condition']} / 5")
         cols[4].write(log["meal_type"])
 
-        if cols[5].button("✕", key=f"del{log['id']}"):
+        if cols[5].button("削除", key=f"del{log['id']}"):
             supabase.table("health_logs").delete().eq(
                 "id", log["id"]
             ).execute()
