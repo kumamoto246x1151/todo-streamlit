@@ -55,7 +55,7 @@ Streamlit を用いてUIを構築し、データの保存には Supabase を利�
 
 以下のURLから実際にアプリを試すことができます。
 
- **https://your-app-name.streamlit.app**
+ **[https://your-app-name.streamlit.app](https://todo-app-bk382wbsfxxffx6bgl2cby.streamlit.app/)**
 
 ※ Streamlit Cloud にデプロイしたURLを記載してください。
 
