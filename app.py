@@ -18,10 +18,7 @@ st.title("健康管理アプリ")
 # ===== 入力欄 =====
 st.subheader("今日の記録")
 
-log_date = st.date_input(
-    "日付",
-    value=date.today()
-)
+log_date = st.date_input("日付", value=date.today())
 
 sleep_hours = st.number_input(
     "睡眠時間（時間）", min_value=0.0, max_value=24.0, step=0.5
@@ -66,23 +63,43 @@ if not logs:
 df = pd.DataFrame(logs)
 df["log_date"] = pd.to_datetime(df["log_date"])
 
+# ===== グラフ用データ =====
+graph_df = df.copy()
+graph_df["sleep_hours"] = graph_df["sleep_hours"].clip(lower=0)
+graph_df["exercise_minutes"] = graph_df["exercise_minutes"].clip(lower=0)
+graph_df["condition"] = graph_df["condition"].clip(lower=0)
+
+# 推奨睡眠時間（固定値）
+RECOMMENDED_SLEEP = 7.0
+graph_df["推奨睡眠時間"] = RECOMMENDED_SLEEP
+
+graph_df = graph_df.set_index("log_date")
+
+# ===== 平均値計算 =====
+avg_sleep = graph_df["sleep_hours"].mean()
+
 # ===== グラフ表示 =====
-st.subheader("グラフ")
+st.subheader("睡眠時間")
 
-st.write("睡眠時間の推移")
-st.line_chart(
-    df.set_index("log_date")["sleep_hours"]
-)
+col_graph, col_info = st.columns([4, 1])
 
-st.write("運動時間の推移")
-st.bar_chart(
-    df.set_index("log_date")["exercise_minutes"]
-)
+with col_graph:
+    st.line_chart(
+        graph_df[["sleep_hours", "推奨睡眠時間"]]
+    )
 
-st.write("体調スコアの推移")
-st.line_chart(
-    df.set_index("log_date")["condition"]
-)
+with col_info:
+    st.metric(
+        label="平均睡眠時間",
+        value=f"{avg_sleep:.1f} 時間"
+    )
+    st.caption("推奨：7時間")
+
+st.subheader("運動時間")
+st.bar_chart(graph_df["exercise_minutes"])
+
+st.subheader("体調スコア")
+st.line_chart(graph_df["condition"])
 
 # ===== 一覧表示 =====
 st.subheader("記録一覧")
